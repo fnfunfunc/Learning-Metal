@@ -17,19 +17,17 @@ Renderer::Renderer(MTL::Device* pDevice): _pDevice(pDevice->retain()), _angle(0.
     _pCommandQueue = _pDevice->newCommandQueue();
     buildShaders();
     buildBuffers();
-    buildFrameData();
     
     _semaphore = dispatch_semaphore_create(Renderer::kMaxFramesInFlight);
 }
 
 Renderer::~Renderer() {
     _pShaderLibrary->release();
-    _pArgBuffer->release();
-    _pVertexPositionsBuffer->release();
-    _pVertexColorsBuffer->release();
-    for (int i = 0; i < Renderer::kMaxFramesInFlight; ++i) {
-        _pFrameData[i]->release();
+    _pVertexDataBuffer->release();
+    for (int i = 0; i < kMaxFramesInFlight; ++i) {
+        _pInstanceDataBuffer[i]->release();
     }
+    _pIndexBuffer->release();
     _pPSO->release();
     _pCommandQueue->release();
     _pDevice->release();
@@ -48,20 +46,19 @@ void Renderer::buildShaders() {
         };
     
         struct VertexData {
-            device float3* positions [[id(0)]];
-            device float3* colors [[id(1)]];
+            float3 position;
         };
     
-        struct FrameData {
-            float angle;
+        struct InstanceData {
+            float4x4 instanceTransform;
+            float4 instanceColor;
         };
     
-        v2f vertex vertexMain(device const VertexData* vertexData [[buffer(0)]], constant FrameData* frameData [[buffer(1)]], uint vertexId [[vertex_id]]) {
-            float a = frameData->angle;
-            float3x3 rotationMatrix = float3x3(sin(a), cos(a), 0.0, cos(a), -sin(a), 0.0, 0.0, 0.0, 1.0);
+        v2f vertex vertexMain(device const VertexData* vertexData [[buffer(0)]], device const InstanceData* instanceData [[buffer(1)]], uint vertexId [[vertex_id]], uint instanceId [[instance_id]]) {
             v2f o;
-            o.position = float4(rotationMatrix * vertexData->positions[vertexId], 1.0);
-            o.color = half3(vertexData->colors[vertexId]);
+            float4 pos = float4(vertexData[vertexId].position, 1.0);
+            o.position = instanceData[instanceId].instanceTransform * pos;
+            o.color = half3(instanceData[instanceId].instanceColor.rgb);
             return o;
         }
     
@@ -99,63 +96,50 @@ void Renderer::buildShaders() {
 }
 
 void Renderer::buildBuffers() {
-    constexpr size_t NUM_VERTICES = 3;
+    using simd::float3;
     
-    simd::float3 positions[NUM_VERTICES] = {
-        { -0.8f, 0.8f, 0.0f },
-        { 0.0f, -0.8f, 0.0f },
-        { 0.8f, 0.8f, 0.0f }
+    const float s = 0.5f;
+    
+    float3 verts[] = {
+        { -s, -s, +s },
+        { +s, -s, +s },
+        { +s, +s, +s },
+        { -s, +s, +s }
     };
     
-    simd::float3 colors[NUM_VERTICES] = {
-        { 1.0f, 0.3f, 0.2f },
-        { 0.8f, 1.0f, 0.0f },
-        { 0.8f, 0.0f, 1.0f }
+    uint16_t indices[] = {
+        0, 1, 2,
+        2, 3, 0,
     };
     
-    const size_t positionDataSize = NUM_VERTICES * sizeof(simd::float3);
-    const size_t colorDataSize = NUM_VERTICES * sizeof(simd::float3);
+    const size_t vertexDataSize = sizeof(verts);
+    const size_t indexDataSize = sizeof(indices);
     
-    MTL::Buffer* pVertexPositionBuffer = _pDevice->newBuffer(positionDataSize, MTL::ResourceStorageModeShared);
-    MTL::Buffer* pVertexColorBuffer = _pDevice->newBuffer(colorDataSize, MTL::ResourceStorageModeShared);
+    MTL::Buffer* pVertexBuffer = _pDevice->newBuffer(vertexDataSize, MTL::ResourceStorageModeShared);
+    MTL::Buffer* pIndexBuffer = _pDevice->newBuffer(indexDataSize, MTL::ResourceStorageModeShared);
     
-    _pVertexPositionsBuffer = pVertexPositionBuffer;
-    _pVertexColorsBuffer = pVertexColorBuffer;
+    _pVertexDataBuffer = pVertexBuffer;
+    _pIndexBuffer = pIndexBuffer;
     
-    memcpy(_pVertexPositionsBuffer->contents(), positions, positionDataSize);
-    memcpy(_pVertexColorsBuffer->contents(), colors, colorDataSize);
+    memcpy(_pVertexDataBuffer->contents(), verts, vertexDataSize);
+    memcpy(_pIndexBuffer->contents(), indices, indexDataSize);
     
-    using NS::StringEncoding::UTF8StringEncoding;
-    assert(_pShaderLibrary != nullptr);
+    const size_t instanceDataSize = kMaxFramesInFlight * kNumInstances * sizeof(shader_types::InstanceData);
     
-    MTL::Function* pVertexFn = _pShaderLibrary->newFunction(NS::String::string("vertexMain", UTF8StringEncoding));
-    MTL::ArgumentEncoder* pArgEncoder = pVertexFn->newArgumentEncoder(0);
-    
-    MTL::Buffer* pArgBuffer = _pDevice->newBuffer(pArgEncoder->encodedLength(), MTL::ResourceStorageModeShared);
-    _pArgBuffer = pArgBuffer;
-    
-    pArgEncoder->setArgumentBuffer(_pArgBuffer, 0); // Set destination
-    
-    pArgEncoder->setBuffer(_pVertexPositionsBuffer, 0, 0); // Encode references to the corresponding index
-    pArgEncoder->setBuffer(_pVertexColorsBuffer, 0, 1);
-    
-    pVertexFn->release();
-    pArgEncoder->release();
-}
-
-void Renderer::buildFrameData() {
-    for (int i = 0; i < Renderer::kMaxFramesInFlight; ++i) {
-        _pFrameData[i] = _pDevice->newBuffer(sizeof(FrameData), MTL::ResourceStorageModeShared);
+    for (size_t i = 0; i < kMaxFramesInFlight; ++i) {
+        _pInstanceDataBuffer[i] = _pDevice->newBuffer(instanceDataSize, MTL::ResourceStorageModeShared);
     }
 }
 
 void Renderer::draw(MTK::View *pView) {
+    using simd::float4;
+    using simd::float4x4;
+    
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     _frame = (_frame + 1) % Renderer::kMaxFramesInFlight;
-    MTL::Buffer* pFrameDataBuffer = _pFrameData[_frame];
+    MTL::Buffer* pInstanceDataBuffer = _pInstanceDataBuffer[_frame];
     
-    reinterpret_cast<FrameData *>(pFrameDataBuffer->contents())->angle = (_angle += 0.01f);
     
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer(); // encode commands for execution by the GPU
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER); // Force CPU to wait if the GPU hasn't finished reading from the next buffer in the cycle
@@ -163,17 +147,34 @@ void Renderer::draw(MTK::View *pView) {
     pCmd->addCompletedHandler([pRenderer](MTL::CommandBuffer* pCmd) {
         dispatch_semaphore_signal(pRenderer->_semaphore);
     });
+    
+    _angle += 0.01f;
+    
+    const float scl = 0.1f;
+    shader_types::InstanceData* pInstanceData = reinterpret_cast<shader_types::InstanceData *>(pInstanceDataBuffer->contents());
+    for (size_t i = 0; i < kNumInstances; ++i) {
+        float iDivNumInstances = i / static_cast<float>(kNumInstances);
+        float xoff = (iDivNumInstances * 2.0f - 1.0f) + (1.f / kNumInstances);
+        float yoff = sin((iDivNumInstances + _angle) * 2.0f * M_PI);
+        pInstanceData[ i ].instanceTransform = (float4x4){ (float4){ scl * sinf(_angle), scl * cosf(_angle), 0.f, 0.f },
+                                                           (float4){ scl * cosf(_angle), scl * -sinf(_angle), 0.f, 0.f },
+                                                           (float4){ 0.f, 0.f, scl, 0.f },
+                                                           (float4){ xoff, yoff, 0.f, 1.f } };
+        float r = iDivNumInstances;
+        float g = 1.0f - r;
+        float b = sinf(M_PI * 2.0f * iDivNumInstances);
+        pInstanceData[i].instanceColor = { r, g, b, 1.0f };
+    }
+    
     // Start command
     MTL::RenderPassDescriptor* pRpd = pView->currentRenderPassDescriptor();
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
     
     pEnc->setRenderPipelineState(_pPSO); // Bind pipeline info
-    pEnc->setVertexBuffer(_pArgBuffer, 0, 0); // Bind argument data
-    pEnc->useResource(_pVertexPositionsBuffer, MTL::ResourceUsageRead);
-    pEnc->useResource(_pVertexColorsBuffer, MTL::ResourceUsageRead);
+    pEnc->setVertexBuffer(_pVertexDataBuffer, 0, 0);
     
-    pEnc->setVertexBuffer(pFrameDataBuffer, 0, 1);
-    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
+    pEnc->setVertexBuffer(pInstanceDataBuffer, 0, 1);
+    pEnc->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, 6, MTL::IndexType::IndexTypeUInt16, _pIndexBuffer, 0, kNumInstances);
     
     pEnc->endEncoding();
     pCmd->presentDrawable(pView->currentDrawable()); // Present the current drawable
