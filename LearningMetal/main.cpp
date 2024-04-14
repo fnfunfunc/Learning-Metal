@@ -6,7 +6,6 @@
 //
 
 #include "main.hpp"
-#include <simd/simd.h>
 
 int main(int argc, char* argv[]) {
     NS::AutoreleasePool *pAutoReleasePool = NS::AutoreleasePool::alloc()->init();
@@ -85,10 +84,15 @@ void MyMTKViewDelegate::drawInMTKView(MTK::View *pView) {
 #pragma mark - Renderer
 #pragma region Renderer {
 
-Renderer::Renderer(MTL::Device* pDevice): _pDevice(pDevice->retain()) {
+const int Renderer::kMaxFramesInFlight = 3;
+
+Renderer::Renderer(MTL::Device* pDevice): _pDevice(pDevice->retain()), _angle(0.f), _frame(0) {
     _pCommandQueue = _pDevice->newCommandQueue();
     buildShaders();
     buildBuffers();
+    buildFrameData();
+    
+    _semaphore = dispatch_semaphore_create(Renderer::kMaxFramesInFlight);
 }
 
 Renderer::~Renderer() {
@@ -96,6 +100,9 @@ Renderer::~Renderer() {
     _pArgBuffer->release();
     _pVertexPositionsBuffer->release();
     _pVertexColorsBuffer->release();
+    for (int i = 0; i < Renderer::kMaxFramesInFlight; ++i) {
+        _pFrameData[i]->release();
+    }
     _pPSO->release();
     _pCommandQueue->release();
     _pDevice->release();
@@ -118,9 +125,15 @@ void Renderer::buildShaders() {
             device float3* colors [[id(1)]];
         };
     
-        v2f vertex vertexMain(device const VertexData* vertexData [[buffer(0)]], uint vertexId [[vertex_id]]) {
+        struct FrameData {
+            float angle;
+        };
+    
+        v2f vertex vertexMain(device const VertexData* vertexData [[buffer(0)]], constant FrameData* frameData [[buffer(1)]], uint vertexId [[vertex_id]]) {
+            float a = frameData->angle;
+            float3x3 rotationMatrix = float3x3(sin(a), cos(a), 0.0, cos(a), -sin(a), 0.0, 0.0, 0.0, 1.0);
             v2f o;
-            o.position = float4(vertexData->positions[vertexId], 1.0);
+            o.position = float4(rotationMatrix * vertexData->positions[vertexId], 1.0);
             o.color = half3(vertexData->colors[vertexId]);
             return o;
         }
@@ -203,10 +216,26 @@ void Renderer::buildBuffers() {
     pArgEncoder->release();
 }
 
+void Renderer::buildFrameData() {
+    for (int i = 0; i < Renderer::kMaxFramesInFlight; ++i) {
+        _pFrameData[i] = _pDevice->newBuffer(sizeof(FrameData), MTL::ResourceStorageModeShared);
+    }
+}
+
 void Renderer::draw(MTK::View *pView) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
+    _frame = (_frame + 1) % Renderer::kMaxFramesInFlight;
+    MTL::Buffer* pFrameDataBuffer = _pFrameData[_frame];
+    
+    reinterpret_cast<FrameData *>(pFrameDataBuffer->contents())->angle = (_angle += 0.01f);
+    
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer(); // encode commands for execution by the GPU
+    dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER); // Force CPU to wait if the GPU hasn't finished reading from the next buffer in the cycle
+    Renderer* pRenderer = this;
+    pCmd->addCompletedHandler([pRenderer](MTL::CommandBuffer* pCmd) {
+        dispatch_semaphore_signal(pRenderer->_semaphore);
+    });
     // Start command
     MTL::RenderPassDescriptor* pRpd = pView->currentRenderPassDescriptor();
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
@@ -215,6 +244,8 @@ void Renderer::draw(MTK::View *pView) {
     pEnc->setVertexBuffer(_pArgBuffer, 0, 0); // Bind argument data
     pEnc->useResource(_pVertexPositionsBuffer, MTL::ResourceUsageRead);
     pEnc->useResource(_pVertexColorsBuffer, MTL::ResourceUsageRead);
+    
+    pEnc->setVertexBuffer(pFrameDataBuffer, 0, 1);
     pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
     
     pEnc->endEncoding();

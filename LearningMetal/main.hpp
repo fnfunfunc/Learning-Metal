@@ -17,12 +17,15 @@
 #include <MetalKit/MetalKit.hpp>
 #include <UIKit/UIKit.hpp>
 
+#include <simd/simd.h>
+
 class Renderer {
 public:
     Renderer(MTL::Device* pDevice);
     ~Renderer();
     void buildShaders();
     void buildBuffers();
+    void buildFrameData();
     void draw(MTK::View* pView);
     
 private:
@@ -33,6 +36,11 @@ private:
     MTL::Buffer* _pArgBuffer;
     MTL::Buffer* _pVertexPositionsBuffer;
     MTL::Buffer* _pVertexColorsBuffer;
+    MTL::Buffer* _pFrameData[3];
+    float _angle;
+    int _frame;
+    dispatch_semaphore_t _semaphore;
+    static const int kMaxFramesInFlight;
 };
 
 class MyMTKViewDelegate : public MTK::ViewDelegate {
@@ -61,5 +69,8 @@ private:
     MyMTKViewDelegate* _pViewDelegate = nullptr;
 };
 
+struct FrameData {
+    float angle;
+};
 
 #endif /* main_h */
