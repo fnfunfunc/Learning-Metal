@@ -15,6 +15,7 @@
 		EC90C1E22BCAFC11003EA917 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C1982BCABBA8003EA917 /* Metal.framework */; };
 		EC90C1E32BCAFC14003EA917 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C19A2BCABBB8003EA917 /* MetalKit.framework */; };
 		EC90C1EC2BCBCB6F003EA917 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC90C1EA2BCBCB6F003EA917 /* Renderer.cpp */; };
+		EC90C1EF2BCC069D003EA917 /* MathUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC90C1ED2BCC069D003EA917 /* MathUtils.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,8 @@
 		EC90C1B42BCAF0F1003EA917 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		EC90C1EA2BCBCB6F003EA917 /* Renderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Renderer.cpp; sourceTree = "<group>"; };
 		EC90C1EB2BCBCB6F003EA917 /* Renderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Renderer.hpp; sourceTree = "<group>"; };
+		EC90C1ED2BCC069D003EA917 /* MathUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MathUtils.cpp; sourceTree = "<group>"; };
+		EC90C1EE2BCC069D003EA917 /* MathUtils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MathUtils.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +77,8 @@
 				EC90C1A32BCAC933003EA917 /* main.hpp */,
 				EC90C1EA2BCBCB6F003EA917 /* Renderer.cpp */,
 				EC90C1EB2BCBCB6F003EA917 /* Renderer.hpp */,
+				EC90C1ED2BCC069D003EA917 /* MathUtils.cpp */,
+				EC90C1EE2BCC069D003EA917 /* MathUtils.hpp */,
 			);
 			path = LearningMetal;
 			sourceTree = "<group>";
@@ -159,6 +164,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC90C1EF2BCC069D003EA917 /* MathUtils.cpp in Sources */,
 				EC90C1EC2BCBCB6F003EA917 /* Renderer.cpp in Sources */,
 				EC90C19E2BCABC59003EA917 /* main.cpp in Sources */,
 			);

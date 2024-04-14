@@ -20,6 +20,7 @@ public:
     Renderer(MTL::Device * pDevice);
     ~Renderer();
     void buildShaders();
+    void buildDepthStencilStates();
     void buildBuffers();
     void draw(MTK::View *pView);
 
@@ -28,10 +29,11 @@ private:
     MTL::CommandQueue* _pCommandQueue;
     MTL::Library* _pShaderLibrary;
     MTL::RenderPipelineState *_pPSO;
-    MTL::Buffer* _pArgBuffer;
+    MTL::DepthStencilState* _pDepthStencilState;
     MTL::Buffer* _pVertexDataBuffer;
     MTL::Buffer* _pIndexBuffer;
     MTL::Buffer* _pInstanceDataBuffer[kMaxFramesInFlight];
+    MTL::Buffer* _pCameraDataBuffer[kMaxFramesInFlight];
     float _angle;
     int _frame;
     dispatch_semaphore_t _semaphore;
@@ -46,6 +48,11 @@ namespace shader_types {
     struct InstanceData {
         simd::float4x4 instanceTransform;
         simd::float4 instanceColor;
+    };
+
+    struct CameraData {
+        simd::float4x4 perspectiveTransform;
+        simd::float4x4 worldTransform;
     };
 }
 
