@@ -14,6 +14,7 @@
 		EC90C1BE2BCAF812003EA917 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C1A12BCABECF003EA917 /* QuartzCore.framework */; };
 		EC90C1E22BCAFC11003EA917 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C1982BCABBA8003EA917 /* Metal.framework */; };
 		EC90C1E32BCAFC14003EA917 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C19A2BCABBB8003EA917 /* MetalKit.framework */; };
+		EC90C1EC2BCBCB6F003EA917 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC90C1EA2BCBCB6F003EA917 /* Renderer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,8 @@
 		EC90C1A32BCAC933003EA917 /* main.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = main.hpp; sourceTree = "<group>"; };
 		EC90C1A42BCADA94003EA917 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		EC90C1B42BCAF0F1003EA917 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EC90C1EA2BCBCB6F003EA917 /* Renderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Renderer.cpp; sourceTree = "<group>"; };
+		EC90C1EB2BCBCB6F003EA917 /* Renderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Renderer.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +72,8 @@
 				EC90C18D2BCABB6F003EA917 /* Assets.xcassets */,
 				EC90C19D2BCABC59003EA917 /* main.cpp */,
 				EC90C1A32BCAC933003EA917 /* main.hpp */,
+				EC90C1EA2BCBCB6F003EA917 /* Renderer.cpp */,
+				EC90C1EB2BCBCB6F003EA917 /* Renderer.hpp */,
 			);
 			path = LearningMetal;
 			sourceTree = "<group>";
@@ -154,6 +159,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC90C1EC2BCBCB6F003EA917 /* Renderer.cpp in Sources */,
 				EC90C19E2BCABC59003EA917 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
