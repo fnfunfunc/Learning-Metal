@@ -8,11 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		EC90C18E2BCABB6F003EA917 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC90C18D2BCABB6F003EA917 /* Assets.xcassets */; };
-		EC90C1992BCABBA8003EA917 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C1982BCABBA8003EA917 /* Metal.framework */; };
-		EC90C19B2BCABBB8003EA917 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C19A2BCABBB8003EA917 /* MetalKit.framework */; };
 		EC90C19E2BCABC59003EA917 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC90C19D2BCABC59003EA917 /* main.cpp */; };
-		EC90C1A02BCABD3B003EA917 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C19F2BCABD3B003EA917 /* Foundation.framework */; };
-		EC90C1A22BCABECF003EA917 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C1A12BCABECF003EA917 /* QuartzCore.framework */; };
+		EC90C1A62BCADADC003EA917 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C19F2BCABD3B003EA917 /* Foundation.framework */; };
+		EC90C1BD2BCAF80D003EA917 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C1A42BCADA94003EA917 /* UIKit.framework */; };
+		EC90C1BE2BCAF812003EA917 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C1A12BCABECF003EA917 /* QuartzCore.framework */; };
+		EC90C1E22BCAFC11003EA917 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C1982BCABBA8003EA917 /* Metal.framework */; };
+		EC90C1E32BCAFC14003EA917 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC90C19A2BCABBB8003EA917 /* MetalKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,9 @@
 		EC90C19D2BCABC59003EA917 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		EC90C19F2BCABD3B003EA917 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		EC90C1A12BCABECF003EA917 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		EC90C1A32BCAC933003EA917 /* main.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = main.hpp; sourceTree = "<group>"; };
+		EC90C1A42BCADA94003EA917 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		EC90C1B42BCAF0F1003EA917 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -30,10 +34,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC90C1A22BCABECF003EA917 /* QuartzCore.framework in Frameworks */,
-				EC90C1992BCABBA8003EA917 /* Metal.framework in Frameworks */,
-				EC90C1A02BCABD3B003EA917 /* Foundation.framework in Frameworks */,
-				EC90C19B2BCABBB8003EA917 /* MetalKit.framework in Frameworks */,
+				EC90C1BE2BCAF812003EA917 /* QuartzCore.framework in Frameworks */,
+				EC90C1A62BCADADC003EA917 /* Foundation.framework in Frameworks */,
+				EC90C1E22BCAFC11003EA917 /* Metal.framework in Frameworks */,
+				EC90C1E32BCAFC14003EA917 /* MetalKit.framework in Frameworks */,
+				EC90C1BD2BCAF80D003EA917 /* UIKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,8 +65,10 @@
 		EC90C1882BCABB6E003EA917 /* LearningMetal */ = {
 			isa = PBXGroup;
 			children = (
+				EC90C1B42BCAF0F1003EA917 /* Info.plist */,
 				EC90C18D2BCABB6F003EA917 /* Assets.xcassets */,
 				EC90C19D2BCABC59003EA917 /* main.cpp */,
+				EC90C1A32BCAC933003EA917 /* main.hpp */,
 			);
 			path = LearningMetal;
 			sourceTree = "<group>";
@@ -69,6 +76,7 @@
 		EC90C1972BCABBA8003EA917 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				EC90C1A42BCADA94003EA917 /* UIKit.framework */,
 				EC90C1A12BCABECF003EA917 /* QuartzCore.framework */,
 				EC90C19F2BCABD3B003EA917 /* Foundation.framework */,
 				EC90C19A2BCABBB8003EA917 /* MetalKit.framework */,
@@ -188,6 +196,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DRIVERKIT_DEPLOYMENT_TARGET = 23.2;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -205,7 +214,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 13;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -251,6 +260,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DRIVERKIT_DEPLOYMENT_TARGET = 23.2;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -262,7 +272,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 13;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -279,7 +289,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"LearningMetal/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 786RCQ7DWX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -287,11 +297,14 @@
 					"${PROJECT_DIR}/metal-cpp",
 					"${PROJECT_DIR}/metal-cpp-extensions",
 				);
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_FILE = LearningMetal/Info.plist;
+				INFOPLIST_KEY_MetalCaptureEnabled = NO;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -312,7 +325,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"LearningMetal/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 786RCQ7DWX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -320,11 +333,14 @@
 					"${PROJECT_DIR}/metal-cpp",
 					"${PROJECT_DIR}/metal-cpp-extensions",
 				);
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_FILE = LearningMetal/Info.plist;
+				INFOPLIST_KEY_MetalCaptureEnabled = NO;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
