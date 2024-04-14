@@ -6,6 +6,7 @@
 //
 
 #include "main.hpp"
+#include <simd/simd.h>
 
 int main(int argc, char* argv[]) {
     NS::AutoreleasePool *pAutoReleasePool = NS::AutoreleasePool::alloc()->init();
@@ -86,11 +87,96 @@ void MyMTKViewDelegate::drawInMTKView(MTK::View *pView) {
 
 Renderer::Renderer(MTL::Device* pDevice): _pDevice(pDevice->retain()) {
     _pCommandQueue = _pDevice->newCommandQueue();
+    buildShaders();
+    buildBuffers();
 }
 
 Renderer::~Renderer() {
+    _pVertexPositionsBuffer->release();
+    _pVertexColorsBuffer->release();
+    _pPSO->release();
     _pCommandQueue->release();
     _pDevice->release();
+}
+
+void Renderer::buildShaders() {
+    using NS::StringEncoding::UTF8StringEncoding;
+    
+    const char* shaderSrc = R"(
+        #include <metal_stdlib>
+        using namespace metal;
+        
+        struct v2f {
+            float4 position [[position]];
+            half3 color;
+        };
+    
+        v2f vertex vertexMain(uint vertexId [[vertex_id]], device const float3* positions [[buffer(0)]], device const float3* colors [[buffer(1)]]) {
+            v2f o;
+            o.position = float4(positions[vertexId], 1.0);
+            o.color = half3(colors[vertexId]);
+            return o;
+        }
+    
+        half4 fragment fragmentMain(v2f in [[stage_in]]) {
+            return half4(in.color, 1.0);
+        }
+    )";
+    
+    NS::Error* pError = nullptr;
+    MTL::Library* pLibrary = _pDevice->newLibrary(NS::String::string(shaderSrc, UTF8StringEncoding), nullptr, &pError);
+
+    if (pLibrary == nullptr) {
+        __builtin_printf("%s", pError->localizedDescription()->utf8String());
+        assert(false);
+    }
+    
+    MTL::Function* pVertexFn = pLibrary->newFunction(NS::String::string("vertexMain", UTF8StringEncoding));
+    MTL::Function* pFragmentFn = pLibrary->newFunction(NS::String::string("fragmentMain", UTF8StringEncoding));
+    
+    MTL::RenderPipelineDescriptor* pDesc = MTL::RenderPipelineDescriptor::alloc()->init();
+    pDesc->setVertexFunction(pVertexFn);
+    pDesc->setFragmentFunction(pFragmentFn);
+    pDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+    
+    _pPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
+    if (_pPSO == nullptr) {
+        __builtin_printf("%s", pError->localizedDescription()->utf8String());
+        assert(false);
+    }
+    
+    pVertexFn->release();
+    pFragmentFn->release();
+    pDesc->release();
+    pLibrary->release();
+}
+
+void Renderer::buildBuffers() {
+    constexpr size_t NUM_VERTICES = 3;
+    
+    simd::float3 positions[NUM_VERTICES] = {
+        { -0.8f, 0.8f, 0.0f },
+        { 0.0f, -0.8f, 0.0f },
+        { 0.8f, 0.8f, 0.0f }
+    };
+    
+    simd::float3 colors[NUM_VERTICES] = {
+        { 1.0f, 0.3f, 0.2f },
+        { 0.8f, 1.0f, 0.0f },
+        { 0.8f, 0.0f, 1.0f }
+    };
+    
+    const size_t positionDataSize = NUM_VERTICES * sizeof(simd::float3);
+    const size_t colorDataSize = NUM_VERTICES * sizeof(simd::float3);
+    
+    MTL::Buffer* pVertexPositionBuffer = _pDevice->newBuffer(positionDataSize, MTL::ResourceStorageModeShared);
+    MTL::Buffer* pVertexColorBuffer = _pDevice->newBuffer(colorDataSize, MTL::ResourceStorageModeShared);
+    
+    _pVertexPositionsBuffer = pVertexPositionBuffer;
+    _pVertexColorsBuffer = pVertexColorBuffer;
+    
+    memcpy(_pVertexPositionsBuffer->contents(), positions, positionDataSize);
+    memcpy(_pVertexColorsBuffer->contents(), colors, colorDataSize);
 }
 
 void Renderer::draw(MTK::View *pView) {
@@ -100,6 +186,12 @@ void Renderer::draw(MTK::View *pView) {
     // Start command
     MTL::RenderPassDescriptor* pRpd = pView->currentRenderPassDescriptor();
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
+    
+    pEnc->setRenderPipelineState(_pPSO); // bind pipeline info
+    pEnc->setVertexBuffer(_pVertexPositionsBuffer, 0, 0); // Bind position data
+    pEnc->setVertexBuffer(_pVertexColorsBuffer, 0, 1); // Bind color data
+    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
+    
     pEnc->endEncoding();
     pCmd->presentDrawable(pView->currentDrawable()); // Present the current drawable
     // End command
